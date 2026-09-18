@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@pixi/core": "^7.4.3",
+    "@pixi/display": "^7.4.3",
     "jszip": "^3.10.2",
     "next": "16.3.5",
-    "pixi-live2d-display": "^0.4.0",
+    "pixi-live2d-display-lipsyncpatch": "^0.5.0-ls-8",
     "pixi.js": "^7.4.3",
     "react": "19.2.8",
     "react-dom": "19.2.8"
