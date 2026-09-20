@@ -9,7 +9,7 @@ const Live2DCanvas = dynamic(() => import("./components/Live2dCanvas"), {
 
 export default function Home() {
   return (
-    <main style={{ width: "100vw", height: "100vh" }}>
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <Live2DCanvas />
     </main>
   );

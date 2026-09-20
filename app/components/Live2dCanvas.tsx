@@ -9,8 +9,9 @@ if (typeof window !== "undefined") {
   PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL2;
 }
 
-const DEBUG = true;
+const DEBUG = false;
 
+// Filter out junk and stuff
 function isJunk(path: string): boolean {
   const name = path.split("/").pop() ?? "";
   return (
@@ -26,9 +27,7 @@ function normalizeKey(path: string): string {
   let p = path.replace(/\\/g, "/").replace(/^\.\//, "");
   try {
     p = decodeURIComponent(p);
-  } catch {
-
-  }
+  } catch {}
   return p.toLowerCase();
 }
 
@@ -38,6 +37,8 @@ export default function Live2DCanvas() {
   const modelRef = useRef<any>(null);
   const objectUrlsRef = useRef<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const max_size = 350 * 1024 * 1024; // 350 MB to prevent zip bombs
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -81,6 +82,10 @@ export default function Live2DCanvas() {
 
     try {
       const { Live2DModel, Live2DFactory } = await import("pixi-live2d-display-lipsyncpatch");
+      if (file.size > max_size) {
+        throw new Error(`ZIP file exceeds maximum size of ${max_size / (1024 * 1024)} MB.`);
+      }
+
       const zip = await JSZip.loadAsync(file);
 
       const entries = Object.entries(zip.files)
@@ -116,7 +121,7 @@ export default function Live2DCanvas() {
 
       const runtime = Live2DFactory.findRuntime(settingsJSON);
       if (!runtime) {
-        throw new Error("Unrecognized model settings (neither Cubism 2 nor Cubism 4).");
+        throw new Error("Unrecognized model (neither Cubism 2 nor Cubism 4).");
       }
 
       const settings = runtime.createModelSettings(settingsJSON);
@@ -179,7 +184,16 @@ export default function Live2DCanvas() {
   };
 
   return (
-    <div style={{ position: "relative", width: "150vw", height: "150vh", overflow: "hidden" }}>
+    <div
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100vh",
+        maxWidth: "100%",
+        maxHeight: "100%",
+        overflow: "hidden",
+      }}
+    >
       <div
         style={{
           position: "absolute",
@@ -194,7 +208,18 @@ export default function Live2DCanvas() {
         }}
       >
         <p style={{ margin: "0 0 8px 0", fontSize: "0.9rem", fontWeight: "bold" }}>
-          Select Live2D ZIP File
+          Select Your Live2D ZIP File
+        </p>
+        <p style={{ margin: "0 0 8px 0", fontSize: "0.75rem" }}>
+          some examples can be found here:{" "}
+          <a
+            href="https://www.live2d.com/en/learn/sample/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#facc15", textDecoration: "underline" }}
+          >
+            https://www.live2d.com/en/learn/sample/
+          </a>
         </p>
         <input
           type="file"
@@ -206,7 +231,14 @@ export default function Live2DCanvas() {
         {isLoading && <p style={{ margin: "8px 0 0 0", color: "#facc15" }}>Loading model...</p>}
       </div>
 
-      <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "block",
+        }}
+      />
     </div>
   );
 }
